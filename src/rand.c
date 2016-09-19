@@ -20,8 +20,10 @@
 # include <wincrypt.h>
 # define inline __inline
 #else
+# include <sys/stat.h>
 # include <sys/types.h>
 # include <sys/time.h>
+# include <errno.h>
 # include <unistd.h>
 #endif
 #include <fcntl.h>
@@ -63,6 +65,54 @@ rand_addrandom(rand_t *rand, u_char *buf, int len)
 	rand->j = rand->i;
 }
 
+static int
+getentropy_urandom(void *buf, size_t len)
+{
+        struct stat st;
+        size_t i;
+        int fd, flags;
+start:
+
+        flags = O_RDONLY;
+#ifdef O_NOFOLLOW
+        flags |= O_NOFOLLOW;
+#endif
+#ifdef O_CLOEXEC
+        flags |= O_CLOEXEC;
+#endif
+        fd = open("/dev/urandom", flags, 0);
+        if (fd == -1) {
+                if (errno == EINTR)
+                        goto start;
+                goto nodevrandom;
+        }
+#ifndef O_CLOEXEC
+        fcntl(fd, F_SETFD, fcntl(fd, F_GETFD) | FD_CLOEXEC);
+#endif
+
+        /* Lightly verify that the device node looks sane */
+        if (fstat(fd, &st) == -1 || !S_ISCHR(st.st_mode)) {
+                close(fd);
+                goto nodevrandom;
+        }
+        for (i = 0; i < len; ) {
+                size_t wanted = len - i;
+                ssize_t ret = read(fd, (char *)buf + i, wanted);
+
+                if (ret == -1) {
+                        if (errno == EAGAIN || errno == EINTR)
+                                continue;
+                        close(fd);
+                        goto nodevrandom;
+                }
+                i += ret;
+        }
+        close(fd);
+nodevrandom:
+        return (-1);
+}
+
+
 rand_t *
 rand_open(void)
 {
@@ -77,13 +127,7 @@ rand_open(void)
 	CryptReleaseContext(hcrypt, 0);
 #else
 	struct timeval *tv = (struct timeval *)seed;
-	int fd;
-
-	if ((fd = open("/dev/arandom", O_RDONLY)) != -1 ||
-	    (fd = open("/dev/urandom", O_RDONLY)) != -1) {
-		read(fd, seed + sizeof(*tv), sizeof(seed) - sizeof(*tv));
-		close(fd);
-	}
+	getentropy_urandom(seed + sizeof(*tv), sizeof(seed) - sizeof(*tv));
 	gettimeofday(tv, NULL);
 #endif
 	if ((r = malloc(sizeof(*r))) != NULL) {
