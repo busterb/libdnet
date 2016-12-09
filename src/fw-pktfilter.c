@@ -2,7 +2,7 @@
  * fw-pktfilter.c
  *
  * Copyright (c) 2002 Dug Song <dugsong@monkey.org>
- * Copyright (c) 2001 Jean-Baptiste Marchand, Hervé Schauer Consultants.  
+ * Copyright (c) 2001 Jean-Baptiste Marchand, Hervé Schauer Consultants.
  *
  * $Id: fw-pktfilter.c 587 2005-02-15 06:37:07Z dugsong $
  */
@@ -19,7 +19,7 @@
 
 #include "dnet.h"
 
-#define PKTFILTER_PIPE "\\\\.\\pipe\\PktFltPipe"	
+#define PKTFILTER_PIPE "\\\\.\\pipe\\PktFltPipe"
 #define MAX_RULE_LENGTH 256
 
 #define FILTER_FAILURE 0 /* filter had a syntax error */
@@ -66,7 +66,7 @@ static int
 parse_portspec(char *str, uint16_t *ports)
 {
 	char *p = strsep(&str, " ");
-	
+
 	if (p[0] == '=') {
 		ports[0] = ports[1] = atoi(strsep(&str, " "));
 	} else if (p[0] == '<') {
@@ -101,7 +101,7 @@ parse_icmpspec(char *str, uint16_t *type, uint16_t *code)
 	}
 	type[0] = i;
 	type[1] = 0xff;
-	
+
 	p = strsep(&str, " ");
 	if (p != NULL && strcmp(p, "code")) {
 		p = strsep(&str, " ");
@@ -125,9 +125,9 @@ static int
 parse_rule(char *str, struct fw_rule *rule)
 {
 	char *p, *q;
-	
+
 	memset(rule, 0, sizeof(*rule));
-	
+
 	/* action */
 	p = strsep(&str, " ");
 	if (strcmp(p, "block") == 0)
@@ -135,7 +135,7 @@ parse_rule(char *str, struct fw_rule *rule)
 	else if (strcmp(p, "pass") == 0)
 		rule->fw_op = FW_OP_ALLOW;
 	else return (-1);
-	
+
 	/* direction */
 	p = strsep(&str, " ");
 	if (strcmp(p, "in") == 0)
@@ -153,7 +153,7 @@ parse_rule(char *str, struct fw_rule *rule)
 		*q = '\0';
 	if (strcmp(p, "all") != 0)
 		strlcpy(rule->fw_device, p, sizeof(rule->fw_device));
-	
+
 	/* proto */
 	p = strsep(&str, " ");
 	/* XXX - handle bug in pktfltsrv.c */
@@ -169,7 +169,7 @@ parse_rule(char *str, struct fw_rule *rule)
 	else if (strcmp(p, "udp") == 0)
 		rule->fw_proto = IP_PROTO_UDP;
 	else rule->fw_proto = atoi(p);
-	
+
 	/* source */
 	p = strsep(&str, " ");
 	if (strcmp(p, "all") == 0)
@@ -179,7 +179,7 @@ parse_rule(char *str, struct fw_rule *rule)
 	p = strsep(&str, " ");
 	if (parse_addr(p, &rule->fw_src) < 0)
 		return (-1);
-	
+
 	/* source port */
 	p = strsep(&str, " ");
 	if (strcmp(p, "port") == 0) {
@@ -191,7 +191,7 @@ parse_rule(char *str, struct fw_rule *rule)
 		str = p + 3;
 	} else if (strcmp(p, "to") != 0)
 		return (-1);
-	
+
 	/* destination */
 	p = strsep(&str, " ");
 	if (parse_addr(p, &rule->fw_dst) < 0)
@@ -215,7 +215,7 @@ static int
 format_rule(const struct fw_rule *rule, char *buf, int len)
 {
 	char tmp[128];
-	
+
 	strlcpy(buf, (rule->fw_op == FW_OP_ALLOW) ? "pass " : "block ", len);
 	strlcat(buf, (rule->fw_dir == FW_DIR_IN) ? "in " : "out ", len);
 	snprintf(tmp, sizeof(tmp), "on %s ", rule->fw_device);
@@ -231,7 +231,7 @@ format_rule(const struct fw_rule *rule, char *buf, int len)
 		strlcat(buf, tmp, len);
 	} else
 		strlcat(buf, "from any ", len);
-	
+
 	/* sport */
 	if (rule->fw_proto == IP_PROTO_TCP || rule->fw_proto == IP_PROTO_UDP) {
 		if (rule->fw_sport[0] == rule->fw_sport[1])
@@ -249,7 +249,7 @@ format_rule(const struct fw_rule *rule, char *buf, int len)
 		strlcat(buf, tmp, len);
 	} else
 		strlcat(buf, "to any ", len);
-	
+
 	/* dport */
 	if (rule->fw_proto == IP_PROTO_TCP || rule->fw_proto == IP_PROTO_UDP) {
 		if (rule->fw_dport[0] == rule->fw_dport[1])
@@ -279,15 +279,15 @@ call_pipe(const char *msg, int len)
 {
 	HANDLE *pipe;
 	DWORD i;
-	char *p, *reply, status;
-	
+	char *reply, status;
+
 	if (!WaitNamedPipe(PKTFILTER_PIPE, NMPWAIT_USE_DEFAULT_WAIT) ||
 	    (pipe = CreateFile(PKTFILTER_PIPE, GENERIC_READ | GENERIC_WRITE,
 		0, NULL, OPEN_EXISTING, 0, NULL)) == INVALID_HANDLE_VALUE) {
 		return (NULL);
 	}
 	reply = NULL;
-	
+
 	if (WriteFile(pipe, msg, len, &i, NULL)) {
 		if (ReadFile(pipe, &status, sizeof(status), &i, NULL)) {
 			if (status == FILTER_FAILURE) {
@@ -297,7 +297,7 @@ call_pipe(const char *msg, int len)
 				/* get msg length */
 				if (ReadFile(pipe, &len, 4, &i, NULL)) {
 					/* get msg */
-					p = reply = calloc(1, len + 1);
+					reply = calloc(1, len + 1);
 					if (!ReadFile(pipe, reply, len,
 						&i, NULL)) {
 						free(reply);
@@ -318,10 +318,10 @@ fw_open(void)
 	fw_t *f;
 	IP_ADAPTER_INFO *ifinfo;
 	ULONG size;
-	
+
 	if ((f = calloc(1, sizeof(*f))) == NULL)
 		return (NULL);
-	
+
 	size = sizeof(*f->ifinfo);
 	f->ifinfo = malloc(size);
 	if (GetAdaptersInfo(f->ifinfo, &size) != ERROR_SUCCESS) {
@@ -344,7 +344,7 @@ fw_open(void)
 			fmt = "tr";
 		else if (ifinfo->Type == MIB_IF_TYPE_FDDI)
 			fmt = "fd";
-		else 
+		else
 			fmt = "if";
 		sprintf(ifinfo->AdapterName, "%s%lu", fmt, ifinfo->ComboIndex);
 	}
@@ -356,9 +356,9 @@ fw_add(fw_t *f, const struct fw_rule *rule)
 {
 	char *p, buf[MAX_RULE_LENGTH];
 	int len;
-	
+
 	len = format_rule(rule, buf, sizeof(buf));
-	
+
 	if ((p = call_pipe(buf, len)) == NULL)
 		return (-1);
 	free(p);
@@ -371,9 +371,9 @@ fw_delete(fw_t *f, const struct fw_rule *rule)
 	struct fw_rule tmp;
 	char *p, *line, *msg, cmd[128], buf[MAX_RULE_LENGTH];
 	int n, ruleno, len;
-	
+
 	format_rule(rule, buf, sizeof(buf));
-	
+
 	len = snprintf(cmd, sizeof(cmd), "List on %s", rule->fw_device);
 	if ((msg = call_pipe(cmd, len)) == NULL)
 		return (-1);
@@ -418,7 +418,7 @@ fw_loop(fw_t *f, fw_handler callback, void *arg)
 		    ifinfo->AdapterName);
 		if ((msg = call_pipe(buf, len)) == NULL)
 			return (-1);
-		
+
 		/* parse msg */
 		for (p = msg; (line = strsep(&p, "\r\n")) != NULL; ) {
 			if (*line == '\0' || *line == '#' || isspace(*line))

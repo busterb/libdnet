@@ -65,6 +65,8 @@ rand_addrandom(rand_t *rand, u_char *buf, int len)
 	rand->j = rand->i;
 }
 
+#ifndef _WIN32
+
 static int
 getentropy_urandom(void *buf, size_t len)
 {
@@ -111,6 +113,8 @@ start:
 nodevrandom:
         return (-1);
 }
+
+#endif
 
 
 rand_t *

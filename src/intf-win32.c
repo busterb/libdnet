@@ -146,7 +146,7 @@ _adapter_address_to_entry(intf_t *intf, IP_ADAPTER_ADDRESSES *a,
 		}
 	}
 	/* XXX - type matches MIB-II ifType. */
-	snprintf(entry->intf_name, sizeof(entry->intf_name), "%s%lu",
+	snprintf(entry->intf_name, sizeof(entry->intf_name), "%s%u",
 	    _ifcombo_name(a->IfType), i);
 	entry->intf_type = (uint16_t)type;
 	char friendly_name[MAX_INTERFACE_NAME_LEN];
@@ -442,7 +442,7 @@ intf_get_pcap_devname(const char *intf_name, char *pcapdev, int pcapdevlen)
 {
 	IP_ADAPTER_ADDRESSES *a;
 	pcap_if_t *pcapdevs;
-	pcap_if_t *pdev, *selected;
+	pcap_if_t *pdev;
 	intf_t *intf;
 
 	if ((intf = intf_open()) == NULL)
@@ -464,7 +464,6 @@ intf_get_pcap_devname(const char *intf_name, char *pcapdev, int pcapdevlen)
 	}
 
 	/* Loop through all the pcap devices until we find a match. */
-	selected = NULL;
 	for (pdev = pcapdevs; pdev != NULL; pdev = pdev->next) {
 		char *name;
 

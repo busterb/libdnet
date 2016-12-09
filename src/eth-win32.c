@@ -26,6 +26,9 @@ struct eth_handle {
 	LPPACKET	 pkt;
 };
 
+int
+eth_get_pcap_devname(const char *intf_name, char *pcapdev, int pcapdevlen);
+
 eth_t *
 eth_open(const char *device)
 {
