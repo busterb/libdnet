@@ -17,8 +17,6 @@
 #include <string.h>
 
 #include "dnet.h"
-#include "pcap.h"
-#include <Packet32.h>
 #include <ntddndis.h>
 
 struct ifcombo {
@@ -432,55 +430,4 @@ intf_close(intf_t *intf)
 		free(intf);
 	}
 	return (NULL);
-}
-
-/* Converts a libdnet interface name to its pcap equivalent. The pcap name is
-   stored in pcapdev up to a length of pcapdevlen, including the terminating
-   '\0'. Returns -1 on error. */
-int
-intf_get_pcap_devname(const char *intf_name, char *pcapdev, int pcapdevlen)
-{
-	IP_ADAPTER_ADDRESSES *a;
-	pcap_if_t *pcapdevs;
-	pcap_if_t *pdev;
-	intf_t *intf;
-
-	if ((intf = intf_open()) == NULL)
-		return (-1);
-	if (_refresh_tables(intf) < 0) {
-		intf_close(intf);
-		return (-1);
-	}
-	a = _find_adapter_address(intf, intf_name);
-
-	if (a == NULL) {
-		intf_close(intf);
-		return (-1);
-	}
-
-	if (pcap_findalldevs(&pcapdevs, NULL) == -1) {
-		intf_close(intf);
-		return (-1);
-	}
-
-	/* Loop through all the pcap devices until we find a match. */
-	for (pdev = pcapdevs; pdev != NULL; pdev = pdev->next) {
-		char *name;
-
-		if (pdev->name == NULL)
-			continue;
-		name = strchr(pdev->name, '{');
-		if (name == NULL)
-			continue;
-		if (strcmp(name, a->AdapterName) == 0)
-			break;
-	}
-	if (pdev != NULL)
-		strlcpy(pcapdev, pdev->name, pcapdevlen);
-	intf_close(intf);
-	pcap_freealldevs(pcapdevs);
-	if (pdev == NULL)
-		return -1;
-	else
-		return 0;
 }

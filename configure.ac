@@ -68,7 +68,7 @@ AC_ARG_WITH(python,
         AC_ERROR(python not found in $withval)
      fi
      ;;
-  esac 
+  esac
 ])
 AC_SUBST(PYTHON)
 AC_SUBST(TCLINC)
@@ -87,39 +87,13 @@ if test "$CYGWIN" = yes ; then
 			CPPFLAGS="$CPPFLAGS -mno-cygwin"
 			CFLAGS="$CFLAGS -mno-cygwin"
 		fi
-		AC_DEFINE(WIN32_LEAN_AND_MEAN, 1, 
+		AC_DEFINE(WIN32_LEAN_AND_MEAN, 1,
 		    [Define for faster code generation.])
 		AC_CHECK_LIB(ws2_32, main)
 		AC_CHECK_LIB(iphlpapi, main)
-		AC_DEFINE(snprintf, _snprintf, 
-		    [Use MingW32's internal snprintf])
-	else
-		AC_MSG_ERROR([need MingW32 package to build under Cygwin])
+		AC_DEFINE(snprintf, _snprintf,
+		    [Use MingW32s internal snprintf])
 	fi
-	AC_MSG_CHECKING(for WinPcap developer's pack)
-	AC_ARG_WITH(wpdpack,
-	[  --with-wpdpack=DIR      use WinPcap developer's pack in DIR],
-	[ AC_MSG_RESULT($withval)
-	  if test -f $withval/include/Packet32.h -a -f $withval/lib/Packet.lib; then
-	     owd=`pwd`
-	     if cd $withval; then withval=`pwd`; cd $owd; fi
-	     CFLAGS="$CFLAGS -I$withval/include"
-	     LIBS="$LIBS -L$withval/lib -lpacket -lwpcap"
-	  else
-	     AC_MSG_ERROR(packet32.h or packet.lib not found in $withval)
-	  fi ],
-	[ for dir in ${prefix} ${HOME}/WPdpack ; do
-	     if test -f ${dir}/include/packet32.h -a -f ${dir}/lib/packet.lib; then
-	        CFLAGS="$CFLAGS -I${dir}/include"
-		LIBS="$LIBS -L${dir}/lib -lpacket -lpcap"
-		have_pcap=yes
-		break;
-	     fi
-	  done
-	  if test "$have_pcap" != yes; then
-	     AC_MSG_ERROR(WinPcap developer's pack not found)
-	  fi
-	  AC_MSG_RESULT(yes) ])
 fi
 
 dnl Checks for libraries.
