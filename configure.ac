@@ -293,8 +293,6 @@ elif test "$ac_cv_header_net_if_tun_h" = yes ; then
 	else
 		AC_LIBOBJ([tun-bsd])
 	fi
-elif test -c "/dev/tun0" ; then
-	AC_LIBOBJ([tun-bsd])
 else
 	AC_LIBOBJ([tun-none])
 fi
