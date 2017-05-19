@@ -95,6 +95,15 @@ if test "$CYGWIN" = yes ; then
 		    [Use MingW32s internal snprintf])
 	fi
 fi
+if test "$MINGW" = yes; then
+	LDFLAGS="$LDFLAGS -static-libgcc"
+	AC_DEFINE(WIN32_LEAN_AND_MEAN, 1,
+		[Define for faster code generation.])
+	AC_CHECK_LIB(ws2_32, main)
+	AC_CHECK_LIB(iphlpapi, main)
+	AC_DEFINE(snprintf, _snprintf,
+		[Use MingW32s internal snprintf])
+fi
 
 dnl Checks for libraries.
 if test "$CYGWIN" != yes ; then
