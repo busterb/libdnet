@@ -209,7 +209,7 @@ _intf_delete_aliases(intf_t *intf, struct intf_entry *entry)
 	memset(&ifra, 0, sizeof(ifra));
 	strlcpy(ifra.ifra_name, entry->intf_name, sizeof(ifra.ifra_name));
 
-	for (i = 0; i < (int)entry->intf_alias_num; i++) {
+	for (i = 0; i < entry->intf_alias_num; i++) {
 		addr_ntos(&entry->intf_alias_addrs[i], &ifra.ifra_addr);
 		ioctl(intf->fd, SIOCDIFADDR, &ifra);
 	}
@@ -217,8 +217,13 @@ _intf_delete_aliases(intf_t *intf, struct intf_entry *entry)
 	struct ifreq ifr;
 
 	for (i = 0; i < entry->intf_alias_num; i++) {
-		snprintf(ifr.ifr_name, sizeof(ifr.ifr_name), "%s:%d",
-		    entry->intf_name, i + 1);
+		char alias_name[64];
+		snprintf(alias_name, sizeof(alias_name), "%s:%d",
+			entry->intf_name, i + 1);
+		if (strlen(alias_name) + 1 > sizeof(ifr.ifr_name)) {
+			continue;
+		}
+		strlcpy(ifr.ifr_name, alias_name, sizeof(ifr.ifr_name));
 # ifdef SIOCLIFREMOVEIF
 		/* XXX - overloading Solaris lifreq with ifreq */
 		ioctl(intf->fd, SIOCLIFREMOVEIF, &ifr);
@@ -260,14 +265,18 @@ _intf_add_aliases(intf_t *intf, const struct intf_entry *entry)
 	}
 #else
 	struct ifreq ifr;
-	int n = 1;
 
 	for (i = 0; i < entry->intf_alias_num; i++) {
 		if (entry->intf_alias_addrs[i].addr_type != ADDR_TYPE_IP)
 			continue;
 
-		snprintf(ifr.ifr_name, sizeof(ifr.ifr_name), "%s:%d",
-		    entry->intf_name, n++);
+		char alias_name[64];
+		snprintf(alias_name, sizeof(alias_name), "%s:%d",
+		    entry->intf_name, i + 1);
+		if (strlen(alias_name) + 1 > sizeof(ifr.ifr_name)) {
+			continue;
+		}
+		strlcpy(ifr.ifr_name, alias_name, sizeof(ifr.ifr_name));
 # ifdef SIOCLIFADDIF
 		if (ioctl(intf->fd, SIOCLIFADDIF, &ifr) < 0)
 			return (-1);
@@ -909,7 +918,10 @@ intf_get_drv_info(intf_t *intf, struct intf_entry *entry)
 
 	drvinfo.cmd = ETHTOOL_GDRVINFO;
 	ifr.ifr_data = (caddr_t)&drvinfo;
-	strncpy(ifr.ifr_name, entry->intf_name, IFNAMSIZ);
+	if (strlen(entry->intf_name) > IFNAMSIZ + 1) {
+		return -1;
+	}
+	strlcpy(ifr.ifr_name, entry->intf_name, IFNAMSIZ);
 
 	if (ioctl(intf->fd, SIOCETHTOOL, &ifr)) {
 		return -1;

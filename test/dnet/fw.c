@@ -33,7 +33,7 @@ static int
 print_rule(const struct fw_rule *fr, void *arg)
 {
 	struct protoent *pr;
-	char proto[16], sport[16], dport[16], typecode[16];
+	char proto[16], sport[32], dport[32], typecode[16];
 
 	if (fr->fw_proto == 0)
 		proto[0] = '\0';
@@ -43,10 +43,10 @@ print_rule(const struct fw_rule *fr, void *arg)
 		snprintf(proto, sizeof(proto), "%s ", pr->p_name);
 
 	sport[0] = dport[0] = typecode[0] = '\0';
-	
+
 	switch (fr->fw_proto) {
 	case IP_PROTO_ICMP:
-		if (fr->fw_sport[1] && fr->fw_dport[1]) 
+		if (fr->fw_sport[1] && fr->fw_dport[1])
 			snprintf(typecode, sizeof(typecode), " %d/%d",
 			    fr->fw_sport[0], fr->fw_dport[0]);
 		else if (fr->fw_sport[1])
@@ -60,7 +60,7 @@ print_rule(const struct fw_rule *fr, void *arg)
 		} else
 			snprintf(sport, sizeof(sport), ":%d-%d",
 			    fr->fw_sport[0], fr->fw_sport[1]);
-		
+
 		if (fr->fw_dport[0] == fr->fw_dport[1]) {
 			snprintf(dport, sizeof(dport), ":%d", fr->fw_dport[0]);
 		} else
@@ -95,19 +95,19 @@ arg_to_fr(int argc, char *argv[], struct fw_rule *fr)
 	memset(fr, 0, sizeof(*fr));
 
 	fr->fw_op = strcmp(argv[0], "allow") ? FW_OP_BLOCK : FW_OP_ALLOW;
-	
+
 	fr->fw_dir = strcmp(argv[1], "in") ? FW_DIR_OUT : FW_DIR_IN;
 
 	if (strcmp(argv[2], "any") != 0)
 		strlcpy(fr->fw_device, argv[2], sizeof(fr->fw_device));
-	
+
 	if ((pr = getprotobyname(argv[3])) != NULL)
 		fr->fw_proto = pr->p_proto;
 	else
 		fr->fw_proto = atoi(argv[3]);
 
 	p = strtok(argv[4], ":");
-	
+
 	if (addr_aton(p, &fr->fw_src) < 0)
 		return (-1);
 
@@ -122,7 +122,7 @@ arg_to_fr(int argc, char *argv[], struct fw_rule *fr)
 		fr->fw_sport[1] = TCP_PORT_MAX;
 	}
 	p = strtok(argv[5], ":");
-	
+
 	if (addr_aton(p, &fr->fw_dst) < 0)
 		return (-1);
 
@@ -135,7 +135,7 @@ arg_to_fr(int argc, char *argv[], struct fw_rule *fr)
 	} else if (fr->fw_proto == IP_PROTO_TCP || fr->fw_proto == IP_PROTO_UDP) {
 		fr->fw_dport[0] = 0;
 		fr->fw_dport[1] = TCP_PORT_MAX;
-	}	
+	}
 	if (argc > 6) {
 		if (fr->fw_proto != IP_PROTO_ICMP &&
 		    fr->fw_proto != IP_PROTO_IGMP) {
@@ -157,13 +157,13 @@ fw_main(int argc, char *argv[])
 {
 	struct fw_rule fr;
 	fw_t *fw;
-	
+
 	if (argc < 2 || *(argv[1]) == '-')
 		usage();
 
 	if ((fw = fw_open()) == NULL)
 		err(1, "fw_open");
-	
+
 	if (argc == 2 && strcmp(argv[1], "show") == 0) {
 		if (fw_loop(fw, print_rule, NULL) < 0)
 			err(1, "fw_loop");
@@ -183,7 +183,7 @@ fw_main(int argc, char *argv[])
 			err(1, "fw_delete");
 	} else
 		usage();
-	
+
 	fw_close(fw);
 
 	exit(0);
