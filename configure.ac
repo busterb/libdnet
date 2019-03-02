@@ -68,7 +68,7 @@ AC_ARG_WITH(python,
         AC_ERROR(python not found in $withval)
      fi
      ;;
-  esac 
+  esac
 ])
 AC_SUBST(PYTHON)
 AC_SUBST(TCLINC)
@@ -87,11 +87,11 @@ if test "$CYGWIN" = yes ; then
 			CPPFLAGS="$CPPFLAGS -mno-cygwin"
 			CFLAGS="$CFLAGS -mno-cygwin"
 		fi
-		AC_DEFINE(WIN32_LEAN_AND_MEAN, 1, 
+		AC_DEFINE(WIN32_LEAN_AND_MEAN, 1,
 		    [Define for faster code generation.])
 		AC_CHECK_LIB(ws2_32, main)
 		AC_CHECK_LIB(iphlpapi, main)
-		AC_DEFINE(snprintf, _snprintf, 
+		AC_DEFINE(snprintf, _snprintf,
 		    [Use MingW32's internal snprintf])
 	else
 		AC_MSG_ERROR([need MingW32 package to build under Cygwin])
@@ -178,15 +178,21 @@ else
 	AC_CHECK_HEADERS(fcntl.h unistd.h)
 	AC_CHECK_HEADERS(sys/bufmod.h sys/dlpi.h sys/dlpihdr.h sys/dlpi_ext.h \
 	    sys/ioctl.h sys/mib.h sys/ndd_var.h sys/socket.h sys/sockio.h \
-	    sys/sysctl.h sys/time.h)
+	    sys/sysctl.h sys/time.h sys/types.h)
 	AC_CHECK_HEADERS(net/bpf.h net/if.h net/if_var.h \
 	    net/if_arp.h net/if_dl.h net/pfilt.h \
-	    net/pfvar.h net/radix.h net/raw.h net/route.h netinet/in_var.h \
+	    net/pfvar.h net/radix.h net/raw.h netinet/in_var.h \
 	    net/if_tun.h linux/if_tun.h netinet/ip_fw.h linux/ip_fw.h \
 	    linux/ip_fwchains.h linux/netfilter_ipv4/ipchains_core.h)
 	AC_CHECK_HEADERS(ip_fil_compat.h netinet/ip_fil_compat.h ip_compat.h \
 	    netinet/ip_compat.h ip_fil.h netinet/ip_fil.h)
 	AC_CHECK_HEADERS(hpsecurity.h stropts.h)
+	AC_CHECK_HEADERS(net/route.h, [], [],
+    [
+#ifdef HAVE_SYS_SOCKET_H
+#include <sys/socket.h>
+#endif
+    ])
 fi
 
 dnl Checks for typedefs, structures, and compiler characteristics.
