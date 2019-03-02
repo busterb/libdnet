@@ -5,7 +5,6 @@
  *
  * Copyright (c) 2000 Dug Song <dugsong@monkey.org>
  *
- * $Id: tcp.h,v 1.17 2004/02/23 10:02:11 dugsong Exp $
  */
 
 #ifndef DNET_TCP_H
@@ -196,5 +195,3 @@ static inline void tcp_pack_hdr(void *buf, uint16_t sport, uint16_t dport,
 void tcp_checksum(struct ip_hdr *ip, struct tcp_hdr *tcp, size_t len);
 
 #endif /* DNET_TCP_H */
-
-/* vim:set ts=4 sw=4 noet ai tw=80: */

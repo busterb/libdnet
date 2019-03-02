@@ -5,7 +5,6 @@
  *
  * Copyright (c) 2000 Dug Song <dugsong@monkey.org>
  *
- * $Id: ip.h,v 1.25 2005/02/16 22:02:45 dugsong Exp $
  */
 
 #ifndef DNET_IP_H
@@ -433,7 +432,8 @@ static inline void ip_pack_hdr(void *buf, uint8_t tos, uint16_t len,
 
 typedef struct ip_handle ip_t;
 
-__BEGIN_DECLS ip_t *ip_open(void);
+__BEGIN_DECLS
+ip_t *ip_open(void);
 ssize_t ip_send(ip_t * i, const void *buf, size_t len);
 ip_t *ip_close(ip_t * i);
 
@@ -446,11 +446,11 @@ char *ip_ntoa(const ip_addr_t * ip);
 
 ssize_t ip_add_option(void *buf, size_t len,
 	int proto, const void *optbuf, size_t optlen);
-void ip_checksum(void *buf, size_t len);
+#define IP_CHECKSUM_FRAGMENT 1
+void ip_checksum(void *buf, size_t len, int flags);
 
 int ip_cksum_add(const void *buf, size_t len, int cksum);
 #define  ip_cksum_carry(x) \
         (x = (x >> 16) + (x & 0xffff), (~(x + (x >> 16)) & 0xffff))
 __END_DECLS
 #endif /* DNET_IP_H */
-/* vim:set ts=4 sw=4 noet ai tw=80: */

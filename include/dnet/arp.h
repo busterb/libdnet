@@ -6,7 +6,6 @@
  *
  * Copyright (c) 2000 Dug Song <dugsong@monkey.org>
  *
- * $Id: arp.h,v 1.12 2003/03/16 17:39:17 dugsong Exp $
  */
 
 #ifndef DNET_ARP_H
@@ -99,12 +98,13 @@ typedef struct arp_handle arp_t;
 
 typedef int (*arp_handler)(const struct arp_entry * entry, void *arg);
 
-__BEGIN_DECLS arp_t * arp_open(void);
+__BEGIN_DECLS
+arp_t * arp_open(void);
 int arp_add(arp_t * arp, const struct arp_entry *entry);
 int arp_delete(arp_t * arp, const struct arp_entry *entry);
 int arp_get(arp_t * arp, struct arp_entry *entry);
 int arp_loop(arp_t * arp, arp_handler callback, void *arg);
 arp_t *arp_close(arp_t * arp);
 __END_DECLS
+
 #endif /* DNET_ARP_H */
-/* vim:set ts=4 sw=4 noet ai tw=80: */

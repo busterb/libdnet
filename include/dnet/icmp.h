@@ -6,7 +6,6 @@
  *
  * Copyright (c) 2000 Dug Song <dugsong@monkey.org>
  *
- * $Id: icmp.h,v 1.14 2003/03/16 17:39:17 dugsong Exp $
  */
 
 #ifndef DNET_ICMP_H
@@ -265,5 +264,3 @@ union icmp_msg {
 void icmp_checksum(struct icmp_hdr *icmp, size_t len);
 
 #endif /* DNET_ICMP_H */
-
-/* vim:set ts=4 sw=4 noet ai tw=80: */

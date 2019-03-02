@@ -5,7 +5,6 @@
  *
  * Copyright (c) 2002 Dug Song <dugsong@monkey.org>
  *
- * $Id: ip6.h,v 1.6 2004/02/23 10:01:15 dugsong Exp $
  */
 
 #include <string.h>
@@ -85,7 +84,7 @@ struct ip6_ext_data_routing {
 	uint8_t type;				/* routing type */
 	uint8_t segleft;			/* segments left */
 	/*
-	 * followed by routing type specific data 
+	 * followed by routing type specific data
 	 */
 } __attribute__((__packed__));
 
@@ -194,12 +193,13 @@ static inline void ip6_pack_hdr2(void *buf, uint32_t c_l,
 	memcpy(&hdr->ip6_dst, dst, IP6_ADDR_LEN);
 }
 
-__BEGIN_DECLS char *ip6_ntop(const ip6_addr_t * ip6, char *dst, size_t size);
+__BEGIN_DECLS
+char *ip6_ntop(const ip6_addr_t * ip6, char *dst, size_t size);
 int ip6_pton(const char *src, ip6_addr_t * dst);
 char *ip6_ntoa(const ip6_addr_t * ip6);
 #define  ip6_aton ip6_pton
 
 void ip6_checksum(void *buf, size_t len);
 __END_DECLS
+
 #endif /* DNET_IP6_H */
-/* vim:set ts=4 sw=4 noet ai tw=80: */

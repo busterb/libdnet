@@ -5,7 +5,6 @@
  *
  * Copyright (c) 2001 Dug Song <dugsong@monkey.org>
  *
- * $Id: fw.h 394 2002-12-14 04:02:36Z dugsong $
  */
 
 #ifndef DNET_FW_H
@@ -43,10 +42,12 @@ typedef struct fw_handle fw_t;
 
 typedef int (*fw_handler)(const struct fw_rule * rule, void *arg);
 
-__BEGIN_DECLS fw_t * fw_open(void);
+__BEGIN_DECLS
+fw_t * fw_open(void);
 int fw_add(fw_t * f, const struct fw_rule *rule);
 int fw_delete(fw_t * f, const struct fw_rule *rule);
 int fw_loop(fw_t * f, fw_handler callback, void *arg);
 fw_t *fw_close(fw_t * f);
 __END_DECLS
+
 #endif /* DNET_FW_H */

@@ -5,7 +5,6 @@
  *
  * Copyright (c) 2000 Dug Song <dugsong@monkey.org>
  *
- * $Id: intf.h 478 2004-01-13 07:41:09Z dugsong $
  */
 
 #ifndef DNET_INTF_H
@@ -76,7 +75,8 @@ typedef struct intf_handle intf_t;
 
 typedef int (*intf_handler)(const struct intf_entry * entry, void *arg);
 
-__BEGIN_DECLS intf_t * intf_open(void);
+__BEGIN_DECLS
+intf_t * intf_open(void);
 int intf_get(intf_t * i, struct intf_entry *entry);
 int intf_get_index(intf_t * intf, struct intf_entry *entry, int af,
 	unsigned int index);

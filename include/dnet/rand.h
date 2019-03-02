@@ -6,7 +6,6 @@
  * Copyright (c) 2000 Dug Song <dugsong@monkey.org>
  * Copyright (c) 1996 David Mazieres <dm@lcs.mit.edu>
  *
- * $Id: rand.h 340 2002-04-07 19:01:25Z dugsong $
  */
 
 #ifndef DNET_RAND_H
@@ -14,7 +13,8 @@
 
 typedef struct rand_handle rand_t;
 
-__BEGIN_DECLS rand_t * rand_open(void);
+__BEGIN_DECLS
+rand_t * rand_open(void);
 
 int rand_get(rand_t * r, void *buf, size_t len);
 int rand_set(rand_t * r, const void *seed, size_t len);

@@ -4,7 +4,6 @@
  * ICMPv6.
  * RFC 4443
  *
- * $Id: $
  */
 
 #ifndef DNET_ICMPV6_H

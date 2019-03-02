@@ -5,7 +5,6 @@
  *
  * Copyright (c) 2008-2009 Daniel Roethlisberger <daniel@roe.ch>
  *
- * $Id: sctp.h 653 2009-07-05 21:00:00Z daniel@roe.ch $
  */
 
 #ifndef DNET_SCTP_H
@@ -133,7 +132,7 @@ struct sctp_chunkhdr_abort {
 	struct dnet_sctp_chunkhdr chunkhdr;
 
 	/*
-	 * empty 
+	 * empty
 	 */
 } __attribute__((__packed__));
 
@@ -150,7 +149,7 @@ struct sctp_chunkhdr_shutdown_ack {
 	struct dnet_sctp_chunkhdr chunkhdr;
 
 	/*
-	 * empty 
+	 * empty
 	 */
 } __attribute__((__packed__));
 
@@ -167,7 +166,7 @@ struct sctp_chunkhdr_cookie_echo {
 	struct dnet_sctp_chunkhdr chunkhdr;
 
 	/*
-	 * empty 
+	 * empty
 	 */
 } __attribute__((__packed__));
 

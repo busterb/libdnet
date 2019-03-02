@@ -5,7 +5,6 @@
  *
  * Copyright (c) 2000 Dug Song <dugsong@monkey.org>
  *
- * $Id: addr.h,v 1.12 2003/02/27 03:44:55 dugsong Exp $
  */
 
 #ifndef DNET_ADDR_H
@@ -42,7 +41,7 @@ struct addr {
 	memmove((addr)->addr_data8, (char *)data, len);  \
 } while (0)
 
-__BEGIN_DECLS int addr_cmp(const struct addr *a, const struct addr *b);
+int addr_cmp(const struct addr *a, const struct addr *b);
 
 int intf_addr_cmp(const struct addr *a, const struct addr *b);
 
@@ -64,5 +63,5 @@ int addr_stob(const struct sockaddr *sa, uint16_t * bits);
 int addr_btom(uint16_t bits, void *mask, size_t size);
 int addr_mtob(const void *mask, size_t size, uint16_t * bits);
 __END_DECLS
+
 #endif /* DNET_ADDR_H */
-/* vim:set ts=4 sw=4 noet ai tw=80: */
