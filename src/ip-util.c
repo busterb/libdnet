@@ -3,7 +3,6 @@
  *
  * Copyright (c) 2002 Dug Song <dugsong@monkey.org>
  *
- * $Id: ip-util.c 651 2009-03-17 13:51:05Z daniel@roe.ch $
  */
 
 #include "config.h"
@@ -40,7 +39,7 @@ _crc32c(unsigned char *buf, int len)
 
 ssize_t
 ip_add_option(void *buf, size_t len, int proto,
-    const void *optbuf, size_t optlen)
+	const void *optbuf, size_t optlen)
 {
 	struct ip_hdr *ip;
 	struct tcp_hdr *tcp = NULL;
@@ -60,7 +59,7 @@ ip_add_option(void *buf, size_t len, int proto,
 		hl = tcp->th_off << 2;
 		p = (u_char *)tcp + hl;
 	}
-	datalen = (int) (ntohs(ip->ip_len) - (p - (u_char *)buf));
+	datalen = ntohs(ip->ip_len) - (p - (u_char *)buf);
 
 	/* Compute padding to next word boundary. */
 	if ((padlen = 4 - (optlen % 4)) == 4)
@@ -68,7 +67,7 @@ ip_add_option(void *buf, size_t len, int proto,
 
 	/* XXX - IP_HDR_LEN_MAX == TCP_HDR_LEN_MAX */
 	if (hl + optlen + padlen > IP_HDR_LEN_MAX ||
-	    ntohs(ip->ip_len) + optlen + padlen > len) {
+		ntohs(ip->ip_len) + optlen + padlen > len) {
 		errno = EINVAL;
 		return (-1);
 	}
@@ -90,17 +89,47 @@ ip_add_option(void *buf, size_t len, int proto,
 	optlen += padlen;
 
 	if (proto == IP_PROTO_IP)
-		ip->ip_hl = (int) ((p - (u_char *)ip) >> 2);
+		ip->ip_hl = (p - (u_char *)ip) >> 2;
 	else if (proto == IP_PROTO_TCP)
-		tcp->th_off = (int) ((p - (u_char *)tcp) >> 2);
+		tcp->th_off = (p - (u_char *)tcp) >> 2;
 
-	ip->ip_len = htons((u_short) (ntohs(ip->ip_len) + optlen));
+	ip->ip_len = htons(ntohs(ip->ip_len) + optlen);
 
-	return (ssize_t)(optlen);
+	return (optlen);
 }
 
 void
-ip_checksum(void *buf, size_t len)
+tcp_checksum(struct ip_hdr *ip, struct tcp_hdr *tcp, size_t len)
+{
+	int sum;
+	tcp->th_sum = 0;
+	sum = ip_cksum_add(tcp, len, 0) + htonl(ip->ip_p + len);
+	sum = ip_cksum_add(&ip->ip_src, 8, sum);
+	tcp->th_sum = ip_cksum_carry(sum);
+}
+
+void
+udp_checksum(struct ip_hdr *ip, struct udp_hdr *udp, size_t len)
+{
+	int sum;
+	udp->uh_sum = 0;
+	sum = ip_cksum_add(udp, len, 0) + htonl(IP_PROTO_UDP + len);
+	sum = ip_cksum_add(&ip->ip_src, 8, sum);
+	udp->uh_sum = ip_cksum_carry(sum);
+	if (!udp->uh_sum)
+		udp->uh_sum = 0xffff;   /* RFC 768 */
+}
+
+void
+icmp_checksum(struct icmp_hdr *icmp, size_t len)
+{
+	int sum;
+	sum = ip_cksum_add(icmp, len, 0);
+	icmp->icmp_cksum = ip_cksum_carry(sum);
+}
+
+void
+ip_checksum(void *buf, size_t len, int flags)
 {
 	struct ip_hdr *ip;
 	int hl, off, sum;
@@ -114,6 +143,9 @@ ip_checksum(void *buf, size_t len)
 	sum = ip_cksum_add(ip, hl, 0);
 	ip->ip_sum = ip_cksum_carry(sum);
 
+	if (flags & IP_CHECKSUM_FRAGMENT)
+		return;
+
 	off = htons(ip->ip_off);
 
 	if ((off & IP_OFFMASK) != 0 || (off & IP_MF) != 0)
@@ -121,42 +153,30 @@ ip_checksum(void *buf, size_t len)
 
 	len -= hl;
 
+	// only calculate ip protocol cksums if it is initialized to 0, this is to
+	// allow for intentional fragmentation
 	if (ip->ip_p == IP_PROTO_TCP) {
 		struct tcp_hdr *tcp = (struct tcp_hdr *)((u_char *)ip + hl);
-
 		if (len >= TCP_HDR_LEN) {
-			tcp->th_sum = 0;
-			sum = ip_cksum_add(tcp, len, 0) +
-			    htons((u_short)(ip->ip_p + len));
-			sum = ip_cksum_add(&ip->ip_src, 8, sum);
-			tcp->th_sum = ip_cksum_carry(sum);
+			tcp_checksum(ip, tcp, len);
 		}
+
 	} else if (ip->ip_p == IP_PROTO_UDP) {
 		struct udp_hdr *udp = (struct udp_hdr *)((u_char *)ip + hl);
-
 		if (len >= UDP_HDR_LEN) {
-			udp->uh_sum = 0;
-			sum = ip_cksum_add(udp, len, 0) +
-			    htons((u_short)(ip->ip_p + len));
-			sum = ip_cksum_add(&ip->ip_src, 8, sum);
-			udp->uh_sum = ip_cksum_carry(sum);
-			if (!udp->uh_sum)
-				udp->uh_sum = 0xffff;	/* RFC 768 */
+			udp_checksum(ip, udp, len);
+		}
+
+	} else if (ip->ip_p == IP_PROTO_ICMP || ip->ip_p == IP_PROTO_IGMP) {
+		struct icmp_hdr *icmp = (struct icmp_hdr *)((u_char *)ip + hl);
+		if (len >= ICMP_HDR_LEN) {
+			icmp_checksum(icmp, len);
 		}
 	} else if (ip->ip_p == IP_PROTO_SCTP) {
 		struct sctp_hdr *sctp = (struct sctp_hdr *)((u_char *)ip + hl);
-
 		if (len >= SCTP_HDR_LEN) {
 			sctp->sh_sum = 0;
 			sctp->sh_sum = htonl(_crc32c((u_char *)sctp, len));
-		}
-	} else if (ip->ip_p == IP_PROTO_ICMP || ip->ip_p == IP_PROTO_IGMP) {
-		struct icmp_hdr *icmp = (struct icmp_hdr *)((u_char *)ip + hl);
-
-		if (len >= ICMP_HDR_LEN) {
-			icmp->icmp_cksum = 0;
-			sum = ip_cksum_add(icmp, len, 0);
-			icmp->icmp_cksum = ip_cksum_carry(sum);
 		}
 	}
 }
@@ -167,12 +187,17 @@ ip_cksum_add(const void *buf, size_t len, int cksum)
 	uint16_t *sp = (uint16_t *)buf;
 	int n, sn;
 
-	sn = (int) len / 2;
+	if (len == 1) {
+		const uint8_t *b = buf;
+		return htons(((uint16_t)*b) << 8);
+	}
+
+	sn = len / 2;
 	n = (sn + 15) / 16;
 
 	/* XXX - unroll loop using Duff's device. */
 	switch (sn % 16) {
-	case 0:	do {
+	case 0: do {
 		cksum += *sp++;
 	case 15:
 		cksum += *sp++;

@@ -37,7 +37,7 @@ ip_main(int argc, char *argv[])
 	u_char *p, buf[IP_LEN_MAX];	/* XXX */
 	char *name, *value;
 	int c, len;
-	
+
 	srand(time(NULL));
 
 	ip = (struct ip_hdr *)buf;
@@ -55,7 +55,7 @@ ip_main(int argc, char *argv[])
 	for (c = 1; c + 1 < argc; c += 2) {
 		name = argv[c];
 		value = argv[c + 1];
-		
+
 		if (strcmp(name, "tos") == 0)
 			ip->ip_tos = atoi(value);
 		else if (strcmp(name, "id") == 0)
@@ -81,26 +81,26 @@ ip_main(int argc, char *argv[])
 	}
 	argc -= c;
 	argv += c;
-	
+
 	if (argc != 0)
 		ip_usage();
-	
+
 	if (isatty(STDIN_FILENO))
 		errx(1, "can't read IP payload from tty");
-	
+
 	p = buf + IP_HDR_LEN;
 	len = sizeof(buf) - (p - buf);
-	
+
 	while ((c = read(STDIN_FILENO, p, len)) > 0) {
 		p += c;
 		len -= c;
 	}
 	len = p - buf;
-	
+
 	ip->ip_len = htons(len);
-	
-	ip_checksum(buf, len);
-	
+
+	ip_checksum(buf, len, 0);
+
 	if (write(STDOUT_FILENO, buf, len) != len)
 		err(1, "write");
 
