@@ -9,7 +9,7 @@ AC_DEFUN([AC_DNET_SOCKADDR_SA_LEN],
     AC_CACHE_VAL(ac_cv_dnet_sockaddr_has_sa_len,
         AC_TRY_COMPILE([
 # ifndef _SOCKADDR_LEN
-#	define _SOCKADDR_LEN 1 
+#	define _SOCKADDR_LEN 1
 # endif
 #       include <sys/types.h>
 #       include <sys/socket.h>],
@@ -160,12 +160,12 @@ dnl results:    HAVE_STREAMS_MIB2
 dnl
 AC_DEFUN([AC_DNET_STREAMS_MIB2],
     [AC_MSG_CHECKING(for SNMP MIB2 STREAMS)
-    AC_CACHE_VAL(ac_cv_dnet_streams_mib2,
-        if test -f /usr/include/inet/mib2.h -a -c /dev/ip ; then
+    AC_CACHE_VAL(ac_cv_dnet_streams_mib2,[
+			if test -f /usr/include/inet/mib2.h -a '(' -c /dev/ip -o -c /dev/arp ')' ; then
             ac_cv_dnet_streams_mib2=yes
         else
             ac_cv_dnet_streams_mib2=no
-        fi)
+        fi])
     AC_MSG_RESULT($ac_cv_dnet_streams_mib2)
     if test $ac_cv_dnet_streams_mib2 = yes ; then
         AC_DEFINE(HAVE_STREAMS_MIB2, 1,
@@ -304,7 +304,7 @@ AC_DEFUN([AC_LBL_LIBRARY_NET], [
     # libraries (i.e. libc):
     AC_CHECK_FUNC(gethostbyname, ,
         # Some OSes (eg. Solaris) place it in libnsl:
-        AC_CHECK_LIB(nsl, gethostbyname, , 
+        AC_CHECK_LIB(nsl, gethostbyname, ,
             # Some strange OSes (SINIX) have it in libsocket:
             AC_CHECK_LIB(socket, gethostbyname, ,
                 # Unfortunately libsocket sometimes depends on libnsl.
