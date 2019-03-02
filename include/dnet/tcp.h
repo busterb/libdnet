@@ -5,7 +5,7 @@
  *
  * Copyright (c) 2000 Dug Song <dugsong@monkey.org>
  *
- * $Id: tcp.h 653 2009-07-05 21:00:00Z daniel@roe.ch $
+ * $Id: tcp.h,v 1.17 2004/02/23 10:02:11 dugsong Exp $
  */
 
 #ifndef DNET_TCP_H
@@ -17,9 +17,7 @@
 #define TCP_HDR_LEN_MAX	(TCP_HDR_LEN + TCP_OPT_LEN_MAX)
 
 #ifndef __GNUC__
-# ifndef __attribute__
 #  define __attribute__(x)
-# endif
 # pragma pack(1)
 #endif
 
@@ -35,8 +33,7 @@ struct tcp_hdr {
 	uint8_t		th_off:4,	/* data offset */
 			th_x2:4;	/* (unused) */
 #elif DNET_BYTESEX == DNET_LIL_ENDIAN
-	uint8_t		th_x2:4,
-			th_off:4;
+	uint8_t th_x2:4, th_off:4;
 #else
 # error "need to include <dnet.h>"
 #endif
@@ -44,7 +41,24 @@ struct tcp_hdr {
 	uint16_t	th_win;		/* window */
 	uint16_t	th_sum;		/* checksum */
 	uint16_t	th_urp;		/* urgent pointer */
+} __attribute__((__packed__));
+
+struct tcp_hdr_fast {
+	uint16_t th_sport;			/* source port */
+	uint16_t th_dport;			/* destination port */
+	uint32_t th_seq;			/* sequence number */
+	uint32_t th_ack;			/* acknowledgment number */
+	uint8_t th_off_x2;			/* data offset */
+	uint8_t th_flags;			/* control flags */
+	uint16_t th_win;			/* window */
+	uint16_t th_sum;			/* checksum */
+	uint16_t th_urp;			/* urgent pointer */
 };
+
+static inline uint8_t tcp_hdr_fast_off(struct tcp_hdr_fast *tcp)
+{
+	return (tcp->th_off_x2 & 0xf0) >> 2;
+}
 
 /*
  * TCP control flags (th_flags)
@@ -86,8 +100,11 @@ struct tcp_hdr {
 
 #define TCP_STATE_FIN_WAIT_2	9	/* have closed, FIN is acked */
 #define TCP_STATE_TIME_WAIT	10	/* in 2*MSL quiet wait after close */
-#define TCP_STATE_MAX		11
+#define TCP_STATE_ETHEREAL     11	/* haven't sent any packets yet */
+#define TCP_STATE_MAX       12
 
+#define TCP_HAS_STARTED_CLOSING(state) \
+	(((state) >= TCP_STATE_CLOSE_WAIT) && ((state) < TCP_STATE_ETHEREAL))
 /*
  * Options (opt_type) - http://www.iana.org/assignments/tcp-parameters
  */
@@ -122,12 +139,12 @@ struct tcp_hdr {
 #define TCP_OPT_TYPEONLY(type)	\
 	((type) == TCP_OPT_EOL || (type) == TCP_OPT_NOP)
 
-/*
- * TCP option (following TCP header)
- */
-struct tcp_opt {
-	uint8_t		opt_type;	/* option type */
-	uint8_t		opt_len;	/* option length >= TCP_OPT_LEN */
+#define TCP_OPT_NOP_LEN         1
+#define TCP_OPT_MSS_LEN     4	/* maximum segment size */
+#define TCP_OPT_TIMESTAMP_LEN   10	/* timestamp, RFC 1323 */
+#define TCP_OPT_TIMESTAMP_ECHO_LEN  4
+#define TCP_OPT_TIMESTAMP_VALUE_LEN 4
+
 	union tcp_opt_data {
 		uint16_t	mss;		/* TCP_OPT_MSS */
 		uint8_t		wscale;		/* TCP_OPT_WSCALE */
@@ -138,23 +155,46 @@ struct tcp_opt {
 		uint8_t		cksum;		/* TCP_OPT_ALTSUM */
 		uint8_t		md5[16];	/* TCP_OPT_MD5 */
 		uint8_t		data8[TCP_OPT_LEN_MAX - TCP_OPT_LEN];
-	} opt_data;
+};
+
+/*
+ * TCP option (following TCP header)
+ */
+struct tcp_opt {
+	uint8_t opt_type;			/* option type */
+	uint8_t opt_len;			/* option length >= TCP_OPT_LEN */
+	union tcp_opt_data opt_data;
 } __attribute__((__packed__));
+
+struct tcp_opt_fast {
+	uint8_t opt_type;			/* option type */
+	uint8_t opt_len;			/* option length >= TCP_OPT_LEN */
+};
 
 #ifndef __GNUC__
 # pragma pack()
 #endif
 
-#define tcp_pack_hdr(hdr, sport, dport, seq, ack, flags, win, urp) do {	\
-	struct tcp_hdr *tcp_pack_p = (struct tcp_hdr *)(hdr);		\
-	tcp_pack_p->th_sport = htons(sport);				\
-	tcp_pack_p->th_dport = htons(dport);				\
-	tcp_pack_p->th_seq = htonl(seq);				\
-	tcp_pack_p->th_ack = htonl(ack);				\
-	tcp_pack_p->th_x2 = 0; tcp_pack_p->th_off = 5;			\
-	tcp_pack_p->th_flags = flags;					\
-	tcp_pack_p->th_win = htons(win);				\
-	tcp_pack_p->th_urp = htons(urp);				\
-} while (0)
+static inline void tcp_pack_hdr(void *buf, uint16_t sport, uint16_t dport,
+	uint32_t seq, uint32_t ack, uint8_t flags, uint16_t win, uint16_t urp)
+{
+	struct tcp_hdr {
+		uint32_t th_sport_dport;
+		uint32_t th_seq;
+		uint32_t th_ack;
+		uint32_t th_off_x2_flags_win;
+		uint32_t th_sum_urp;
+	} *hdr = (struct tcp_hdr *)buf;
+
+	hdr->th_sport_dport = (htons(sport) << 16) | htons(dport);
+	hdr->th_seq = htonl(seq);
+	hdr->th_ack = htonl(ack);
+	hdr->th_off_x2_flags_win = (0x50 << 24) | (flags << 16) | htons(win);
+	hdr->th_sum_urp = htons(urp);
+};
+
+void tcp_checksum(struct ip_hdr *ip, struct tcp_hdr *tcp, size_t len);
 
 #endif /* DNET_TCP_H */
+
+/* vim:set ts=4 sw=4 noet ai tw=80: */

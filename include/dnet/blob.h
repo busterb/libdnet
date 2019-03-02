@@ -18,8 +18,7 @@ typedef struct blob {
 	int		 size;		/* size of allocation */
 } blob_t;
 
-__BEGIN_DECLS
-blob_t	*blob_new(void);
+__BEGIN_DECLS blob_t * blob_new(void);
 
 int	 blob_read(blob_t *b, void *buf, int len);
 int	 blob_write(blob_t *b, const void *buf, int len);
@@ -52,5 +51,4 @@ typedef int (*blob_fmt_cb)(int pack, int len, blob_t *b, va_list *arg);
 int	 blob_register_pack(char c, blob_fmt_cb fmt_cb);
 #endif
 __END_DECLS
-
 #endif /* DNET_BLOB_H */

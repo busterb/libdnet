@@ -42,9 +42,7 @@ struct addr {
 	memmove((addr)->addr_data8, (char *)data, len);  \
 } while (0)
 
-__BEGIN_DECLS
-
-int     addr_cmp(const struct addr *a, const struct addr *b);
+__BEGIN_DECLS int addr_cmp(const struct addr *a, const struct addr *b);
 
 int     intf_addr_cmp(const struct addr *a, const struct addr *b);
 

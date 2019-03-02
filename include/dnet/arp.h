@@ -6,7 +6,7 @@
  *
  * Copyright (c) 2000 Dug Song <dugsong@monkey.org>
  *
- * $Id: arp.h 653 2009-07-05 21:00:00Z daniel@roe.ch $
+ * $Id: arp.h,v 1.12 2003/03/16 17:39:17 dugsong Exp $
  */
 
 #ifndef DNET_ARP_H
@@ -31,7 +31,7 @@ struct arp_hdr {
 	uint8_t		ar_hln;	/* length of hardware address (ETH_ADDR_LEN) */
 	uint8_t		ar_pln;	/* length of protocol address (IP_ADDR_LEN) */
 	uint16_t	ar_op;	/* operation */
-};
+} __attribute__((__packed__));
 
 /*
  * Hardware address format
@@ -63,11 +63,11 @@ struct arp_hdr {
  * Ethernet/IP ARP message
  */
 struct arp_ethip {
-	uint8_t		ar_sha[ETH_ADDR_LEN];	/* sender hardware address */
-	uint8_t		ar_spa[IP_ADDR_LEN];	/* sender protocol address */
-	uint8_t		ar_tha[ETH_ADDR_LEN];	/* target hardware address */
-	uint8_t		ar_tpa[IP_ADDR_LEN];	/* target protocol address */
-};
+	eth_addr_t ar_sha;			/* sender hardware address */
+	ip_addr_t ar_spa;			/* sender protocol address */
+	eth_addr_t ar_tha;			/* target hardware address */
+	ip_addr_t ar_tpa;			/* target protocol address */
+} __attribute__((__packed__));
 
 /*
  * ARP cache entry
@@ -75,7 +75,7 @@ struct arp_ethip {
 struct arp_entry {
 	struct addr	arp_pa;			/* protocol address */
 	struct addr	arp_ha;			/* hardware address */
-};
+} __attribute__((__packed__));
 
 #ifndef __GNUC__
 # pragma pack()
@@ -83,30 +83,28 @@ struct arp_entry {
 
 #define arp_pack_hdr_ethip(hdr, op, sha, spa, tha, tpa) do {	\
 	struct arp_hdr *pack_arp_p = (struct arp_hdr *)(hdr);	\
-	struct arp_ethip *pack_ethip_p = (struct arp_ethip *)	\
-		((uint8_t *)(hdr) + ARP_HDR_LEN);		\
+    struct arp_ethip *pack_ethip_p = (struct arp_ethip *)(pack_arp_p + 1);  \
 	pack_arp_p->ar_hrd = htons(ARP_HRD_ETH);		\
 	pack_arp_p->ar_pro = htons(ARP_PRO_IP);			\
 	pack_arp_p->ar_hln = ETH_ADDR_LEN;			\
 	pack_arp_p->ar_pln = IP_ADDR_LEN;			\
 	pack_arp_p->ar_op = htons(op);				\
-	memmove(pack_ethip_p->ar_sha, &(sha), ETH_ADDR_LEN);	\
-	memmove(pack_ethip_p->ar_spa, &(spa), IP_ADDR_LEN);	\
-	memmove(pack_ethip_p->ar_tha, &(tha), ETH_ADDR_LEN);	\
-	memmove(pack_ethip_p->ar_tpa, &(tpa), IP_ADDR_LEN);	\
+    memcpy(&pack_ethip_p->ar_sha, &(sha), ETH_ADDR_LEN);    \
+    memcpy(&pack_ethip_p->ar_spa, &(spa), IP_ADDR_LEN); \
+    memcpy(&pack_ethip_p->ar_tha, &(tha), ETH_ADDR_LEN);    \
+    memcpy(&pack_ethip_p->ar_tpa, &(tpa), IP_ADDR_LEN); \
 } while (0)
 
 typedef struct arp_handle arp_t;
 
 typedef int (*arp_handler)(const struct arp_entry *entry, void *arg);
 
-__BEGIN_DECLS
-arp_t	*arp_open(void);
+__BEGIN_DECLS arp_t * arp_open(void);
 int	 arp_add(arp_t *arp, const struct arp_entry *entry);
 int	 arp_delete(arp_t *arp, const struct arp_entry *entry);
 int	 arp_get(arp_t *arp, struct arp_entry *entry);
 int	 arp_loop(arp_t *arp, arp_handler callback, void *arg);
 arp_t	*arp_close(arp_t *arp);
 __END_DECLS
-
 #endif /* DNET_ARP_H */
+/* vim:set ts=4 sw=4 noet ai tw=80: */

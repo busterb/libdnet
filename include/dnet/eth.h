@@ -81,8 +81,7 @@ struct eth_8021q_hdr {
 
 typedef struct eth_handle eth_t;
 
-__BEGIN_DECLS
-eth_t	*eth_open(const char *device);
+__BEGIN_DECLS eth_t * eth_open(const char *device);
 int	 eth_get(eth_t *e, eth_addr_t *ea);
 int	 eth_set(eth_t *e, const eth_addr_t *ea);
 ssize_t	 eth_send(eth_t *e, const void *buf, size_t len);
@@ -93,5 +92,4 @@ int	 eth_pton(const char *src, eth_addr_t *dst);
 char	*eth_ntoa(const eth_addr_t *eth);
 #define	 eth_aton eth_pton
 __END_DECLS
-
 #endif /* DNET_ETH_H */

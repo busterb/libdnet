@@ -14,8 +14,7 @@
 
 typedef struct rand_handle rand_t;
 
-__BEGIN_DECLS
-rand_t	*rand_open(void);
+__BEGIN_DECLS rand_t * rand_open(void);
 
 int	 rand_get(rand_t *r, void *buf, size_t len);
 int	 rand_set(rand_t *r, const void *seed, size_t len);
@@ -29,5 +28,4 @@ int	 rand_shuffle(rand_t *r, void *base, size_t nmemb, size_t size);
 
 rand_t	*rand_close(rand_t *r);
 __END_DECLS
-
 #endif /* DNET_RAND_H */

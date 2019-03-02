@@ -6,7 +6,7 @@
  *
  * Copyright (c) 2000 Dug Song <dugsong@monkey.org>
  *
- * $Id: icmp.h 653 2009-07-05 21:00:00Z daniel@roe.ch $
+ * $Id: icmp.h,v 1.14 2003/03/16 17:39:17 dugsong Exp $
  */
 
 #ifndef DNET_ICMP_H
@@ -16,9 +16,7 @@
 #define ICMP_LEN_MIN	8	/* minimum ICMP message size, with header */
 
 #ifndef __GNUC__
-# ifndef __attribute__
 #  define __attribute__(x)
-# endif
 # pragma pack(1)
 #endif
 
@@ -235,7 +233,7 @@ union icmp_msg {
 	icmp_pack_hdr(hdr, type, code);					\
 	echo_pack_p->icmp_id = htons(id);				\
 	echo_pack_p->icmp_seq = htons(seq);				\
-	memmove(echo_pack_p->icmp_data, data, len);			\
+    if (data != NULL) memcpy(echo_pack_p->icmp_data, data, len); \
 } while (0)
 
 #define icmp_pack_hdr_quote(hdr, type, code, word, pkt, len) do {	\
@@ -243,7 +241,7 @@ union icmp_msg {
 		((uint8_t *)(hdr) + ICMP_HDR_LEN);			\
 	icmp_pack_hdr(hdr, type, code);					\
 	quote_pack_p->icmp_void = htonl(word);				\
-	memmove(quote_pack_p->icmp_ip, pkt, len);			\
+    memcpy(quote_pack_p->icmp_ip, pkt, len); \
 } while (0)
 
 #define icmp_pack_hdr_mask(hdr, type, code, id, seq, mask) do {		\
@@ -261,7 +259,11 @@ union icmp_msg {
 	icmp_pack_hdr(hdr, type, code);					\
 	frag_pack_p->icmp_void = 0;					\
 	frag_pack_p->icmp_mtu = htons(mtu);				\
-	memmove(frag_pack_p->icmp_ip, pkt, len);			\
+    memcpy(frag_pack_p->icmp_ip, pkt, len);         \
 } while (0)
 
+void icmp_checksum(struct icmp_hdr *icmp, size_t len);
+
 #endif /* DNET_ICMP_H */
+
+/* vim:set ts=4 sw=4 noet ai tw=80: */

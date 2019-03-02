@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2001 Dug Song <dugsong@monkey.org>
  *
- * $Id: arp.c 352 2002-05-08 04:55:32Z dugsong $
+ * $Id: arp.c,v 1.10 2002/05/08 04:55:32 dugsong Exp $
  */
 
 #include "config.h"
@@ -126,19 +126,19 @@ arp_main(int argc, char *argv[])
 		} else if (strcmp(name, "sha") == 0) {
 			if (addr_aton(value, &addr) < 0)
 				arp_usage();
-			memcpy(ethip->ar_sha, &addr.addr_eth, ETH_ADDR_LEN);
+			memcpy(&ethip->ar_sha, &addr.addr_eth, ETH_ADDR_LEN);
 		} else if (strcmp(name, "spa") == 0) {			
 			if (addr_aton(value, &addr) < 0)
 				arp_usage();
-			memcpy(ethip->ar_spa, &addr.addr_ip, IP_ADDR_LEN);
+			memcpy(&ethip->ar_spa, &addr.addr_ip, IP_ADDR_LEN);
 		} else if (strcmp(name, "tha") == 0) {
 			if (addr_aton(value, &addr) < 0)
 				arp_usage();
-			memcpy(ethip->ar_tha, &addr.addr_eth, ETH_ADDR_LEN);
+			memcpy(&ethip->ar_tha, &addr.addr_eth, ETH_ADDR_LEN);
 		} else if (strcmp(name, "tpa") == 0) {
 			if (addr_aton(value, &addr) < 0)
 				arp_usage();
-			memcpy(ethip->ar_tpa, &addr.addr_ip, IP_ADDR_LEN);
+			memcpy(&ethip->ar_tpa, &addr.addr_ip, IP_ADDR_LEN);
 		}
 		else
 			arp_usage();

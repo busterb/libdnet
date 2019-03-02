@@ -132,7 +132,9 @@ struct sctp_chunkhdr_init_ack {
 struct sctp_chunkhdr_abort {
 	struct dnet_sctp_chunkhdr chunkhdr;
 
-	/* empty */
+	/*
+	 * empty 
+	 */
 } __attribute__((__packed__));
 
 #define sctp_pack_chunkhdr_abort(hdr, type, flags, length) do {		\
@@ -147,7 +149,9 @@ struct sctp_chunkhdr_abort {
 struct sctp_chunkhdr_shutdown_ack {
 	struct dnet_sctp_chunkhdr chunkhdr;
 
-	/* empty */
+	/*
+	 * empty 
+	 */
 } __attribute__((__packed__));
 
 #define sctp_pack_chunkhdr_shutdown_ack(hdr, type, flags, length) do {	\
@@ -162,7 +166,9 @@ struct sctp_chunkhdr_shutdown_ack {
 struct sctp_chunkhdr_cookie_echo {
 	struct dnet_sctp_chunkhdr chunkhdr;
 
-	/* empty */
+	/*
+	 * empty 
+	 */
 } __attribute__((__packed__));
 
 #define sctp_pack_chunkhdr_cookie_echo(hdr, type, flags, length) do {	\
@@ -176,4 +182,3 @@ struct sctp_chunkhdr_cookie_echo {
 #endif
 
 #endif /* DNET_SCTP_H */
-

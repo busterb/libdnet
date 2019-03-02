@@ -5,7 +5,7 @@
  *
  * Copyright (c) 2000 Dug Song <dugsong@monkey.org>
  *
- * $Id: ip.h 653 2009-07-05 21:00:00Z daniel@roe.ch $
+ * $Id: ip.h,v 1.25 2005/02/16 22:02:45 dugsong Exp $
  */
 
 #ifndef DNET_IP_H
@@ -19,18 +19,14 @@
 #define IP_OPT_LEN_MAX	40
 #define IP_HDR_LEN_MAX	(IP_HDR_LEN + IP_OPT_LEN_MAX)
 
-#define IP_MIN_PKT	576		/* minimum required packet size */
-#define IP_MTU_MIN	68		/* minimum MTU */
-
 #define IP_LEN_MAX	65535
 #define IP_LEN_MIN	IP_HDR_LEN
 
+#include <stdbool.h>
 typedef uint32_t	ip_addr_t;
 
 #ifndef __GNUC__
-# ifndef __attribute__
 #  define __attribute__(x)
-# endif
 # pragma pack(1)
 #endif
 
@@ -42,8 +38,7 @@ struct ip_hdr {
 	uint8_t		ip_v:4,		/* version */
 			ip_hl:4;	/* header length (incl any options) */
 #elif DNET_BYTESEX == DNET_LIL_ENDIAN
-	uint8_t		ip_hl:4,
-			ip_v:4;
+	uint8_t ip_hl:4, ip_v:4;
 #else
 # error "need to include <dnet.h>"	
 #endif
@@ -56,6 +51,19 @@ struct ip_hdr {
 	uint16_t	ip_sum;		/* checksum */
 	ip_addr_t	ip_src;		/* source address */
 	ip_addr_t	ip_dst;		/* destination address */
+} __attribute__((__packed__));
+
+struct ip_hdr_fast {
+	uint8_t ip_v_hl;
+	uint8_t ip_tos;				/* type of service */
+	uint16_t ip_len;			/* total length (incl header) */
+	uint16_t ip_id;				/* identification */
+	uint16_t ip_off;			/* fragment offset and flags */
+	uint8_t ip_ttl;				/* time to live */
+	uint8_t ip_p;				/* protocol */
+	uint16_t ip_sum;			/* checksum */
+	ip_addr_t ip_src;
+	ip_addr_t ip_dst;
 };
 
 /*
@@ -234,7 +242,7 @@ struct ip_hdr {
 #define IP_PROTO_FC		133		/* Fibre Channel */
 #define IP_PROTO_RSVPIGN	134		/* RSVP-E2E-IGNORE */
 #define IP_PROTO_MOBILITY	135		/* Mobility header */
-#define IP_PROTO_UDPLITE	136		/* UDP Lite */
+#define IP_PROTO_UDPLITE    136
 #define	IP_PROTO_RAW		255		/* Raw IP packets */
 #define IP_PROTO_RESERVED	IP_PROTO_RAW	/* Reserved */
 #define	IP_PROTO_MAX		255
@@ -316,8 +324,7 @@ struct ip_opt_data_ts {
 	uint8_t		oflw:4,		/* number of IPs skipped */
 	    		flg:4;		/* address[ / timestamp] flag */
 #elif DNET_BYTESEX == DNET_LIL_ENDIAN
-	uint8_t		flg:4,
-			oflw:4;
+	uint8_t flg:4, oflw:4;
 #endif
 	uint32_t	ipts __flexarr;	/* IP address [/ timestamp] pairs */
 } __attribute__((__packed__));
@@ -406,26 +413,33 @@ struct ip_opt {
 #define IP_ADDR_MCAST_ALL	(htonl(0xe0000001))	/* 224.0.0.1 */
 #define IP_ADDR_MCAST_LOCAL	(htonl(0xe00000ff))	/* 224.0.0.255 */
 
-#define IP_LOOPBACK(i)  (((uint32_t)(i) & htonl(0xff000000)) == \
-				htonl(0x7f000000))
-
-#define ip_pack_hdr(hdr, tos, len, id, off, ttl, p, src, dst) do {	\
-	struct ip_hdr *ip_pack_p = (struct ip_hdr *)(hdr);		\
-	ip_pack_p->ip_v = 4; ip_pack_p->ip_hl = 5;			\
-	ip_pack_p->ip_tos = tos; ip_pack_p->ip_len = htons(len);	\
- 	ip_pack_p->ip_id = htons(id); ip_pack_p->ip_off = htons(off);	\
-	ip_pack_p->ip_ttl = ttl; ip_pack_p->ip_p = p;			\
-	ip_pack_p->ip_src = src; ip_pack_p->ip_dst = dst;		\
-} while (0)
+static inline void ip_pack_hdr(void *buf, uint8_t tos, uint16_t len,
+	uint16_t id, uint16_t off, uint8_t ttl, uint8_t p, ip_addr_t src,
+	ip_addr_t dst)
+{
+	struct ip_hdr {
+		uint32_t ip_v_hl_tos_len;
+		uint32_t ip_id_off;
+		uint32_t ip_ttl_p_sum;
+		ip_addr_t ip_src;
+		ip_addr_t ip_dst;
+	} *hdr = (struct ip_hdr *)buf;
+	hdr->ip_v_hl_tos_len = (0x45 << 24) | (tos << 16) | htons(len);
+	hdr->ip_id_off = (htons(id) << 16) | htons(off);
+	hdr->ip_ttl_p_sum = (ttl << 24) | (p << 16);
+	hdr->ip_src = src;
+	hdr->ip_dst = dst;
+}
 
 typedef struct ip_handle ip_t;
 
-__BEGIN_DECLS
-ip_t	*ip_open(void);
+__BEGIN_DECLS ip_t *ip_open(void);
 ssize_t	 ip_send(ip_t *i, const void *buf, size_t len);
 ip_t	*ip_close(ip_t *i);
 
 char	*ip_ntop(const ip_addr_t *ip, char *dst, size_t len);
+char *ip_ntop_hex(const ip_addr_t * ip, char *dst, size_t len);
+char *ip_ntop_comma(const ip_addr_t * ip, char *dst, size_t len);
 int	 ip_pton(const char *src, ip_addr_t *dst);
 char	*ip_ntoa(const ip_addr_t *ip);
 #define	 ip_aton ip_pton
@@ -438,5 +452,5 @@ int	 ip_cksum_add(const void *buf, size_t len, int cksum);
 #define	 ip_cksum_carry(x) \
 	    (x = (x >> 16) + (x & 0xffff), (~(x + (x >> 16)) & 0xffff))
 __END_DECLS
-
 #endif /* DNET_IP_H */
+/* vim:set ts=4 sw=4 noet ai tw=80: */

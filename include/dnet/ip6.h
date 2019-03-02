@@ -5,8 +5,10 @@
  *
  * Copyright (c) 2002 Dug Song <dugsong@monkey.org>
  *
- * $Id: ip6.h 663 2010-10-11 13:33:06Z jay.fink $
+ * $Id: ip6.h,v 1.6 2004/02/23 10:01:15 dugsong Exp $
  */
+
+#include <string.h>
 
 #ifndef DNET_IP6_H
 #define DNET_IP6_H
@@ -22,12 +24,10 @@
 
 typedef struct ip6_addr {
 	uint8_t         data[IP6_ADDR_LEN];
-} ip6_addr_t;
+} __attribute__((__packed__)) ip6_addr_t;
 
 #ifndef __GNUC__
-# ifndef __attribute__
 #  define __attribute__(x)
-# endif
 # pragma pack(1)
 #endif
 
@@ -78,24 +78,15 @@ struct ip6_hdr {
  * IP_PROTO_FRAGMENT, IP_PROTO_AH, IP_PROTO_ESP, IP_PROTO_DSTOPTS, IP_PROTO_*
  */
 
-#define IP6_EXT_HEADER(val) \
-((val) == IP_PROTO_HOPOPTS || \
- (val) == IP_PROTO_DSTOPTS || \
- (val) == IP_PROTO_ROUTING || \
- (val) == IP_PROTO_FRAGMENT || \
- (val) == IP_PROTO_AH || \
- (val) == IP_PROTO_ESP || \
- (val) == IP_PROTO_NONE || \
- (val) == IP_PROTO_DSTOPTS || \
- (val) == IP_PROTO_MOBILITY)
-
 /*
  * Routing header data (IP_PROTO_ROUTING)
  */
 struct ip6_ext_data_routing {
 	uint8_t  type;			/* routing type */
 	uint8_t  segleft;		/* segments left */
-	/* followed by routing type specific data */
+	/*
+	 * followed by routing type specific data 
+	 */
 } __attribute__((__packed__));
 
 struct ip6_ext_data_routing0 {
@@ -173,24 +164,42 @@ struct ip6_ext_hdr {
 #define IP6_ADDR_LOOPBACK \
 	"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01"
 
-#define ip6_pack_hdr(hdr, fc, fl, plen, nxt, hlim, src, dst) do {	\
-	struct ip6_hdr *ip6 = (struct ip6_hdr *)(hdr);			\
-	ip6->ip6_flow = htonl(((uint32_t)(fc) << 20) |          \
-	    (0x000fffff & (fl)));                   \
-	ip6->ip6_vfc = (IP6_VERSION | ((fc) >> 4));			\
-	ip6->ip6_plen = htons((plen));					\
-	ip6->ip6_nxt = (nxt); ip6->ip6_hlim = (hlim);			\
-	memcpy(&ip6->ip6_src, &(src), IP6_ADDR_LEN);			\
-	memcpy(&ip6->ip6_dst, &(dst), IP6_ADDR_LEN);			\
-} while (0);
+static inline void ip6_pack_hdr(void *buf, uint8_t c, uint32_t l,
+	uint16_t plen, uint8_t nxt, uint8_t hlim, void *src, void *dst)
+{
+	struct ip6_hdr {
+		uint32_t ip6_v_c_l;
+		uint32_t ip6_plen_nxt_hlim;
+		ip6_addr_t ip6_src;
+		ip6_addr_t ip6_dst;
+	} *hdr = (struct ip6_hdr *)buf;
+	hdr->ip6_v_c_l = (6 << 28) | (c << 20) | (IP6_FLOWLABEL_MASK & l);
+	hdr->ip6_plen_nxt_hlim = (htons(plen) << 16) | (nxt << 8) | hlim;
+	memcpy(&hdr->ip6_src, src, IP6_ADDR_LEN);
+	memcpy(&hdr->ip6_dst, dst, IP6_ADDR_LEN);
+}
 
-__BEGIN_DECLS
-char	*ip6_ntop(const ip6_addr_t *ip6, char *dst, size_t size);
+static inline void ip6_pack_hdr2(void *buf, uint32_t c_l,
+	uint16_t plen, uint8_t nxt, uint8_t hlim, void *src, void *dst)
+{
+	struct ip6_hdr {
+		uint32_t ip6_v_c_l;
+		uint32_t ip6_plen_nxt_hlim;
+		ip6_addr_t ip6_src;
+		ip6_addr_t ip6_dst;
+	} *hdr = (struct ip6_hdr *)buf;
+	hdr->ip6_v_c_l = (6 << 28) | c_l;
+	hdr->ip6_plen_nxt_hlim = (htons(plen) << 16) | (nxt << 8) | hlim;
+	memcpy(&hdr->ip6_src, src, IP6_ADDR_LEN);
+	memcpy(&hdr->ip6_dst, dst, IP6_ADDR_LEN);
+}
+
+__BEGIN_DECLS char *ip6_ntop(const ip6_addr_t * ip6, char *dst, size_t size);
 int	 ip6_pton(const char *src, ip6_addr_t *dst);
 char	*ip6_ntoa(const ip6_addr_t *ip6);
 #define	 ip6_aton ip6_pton
 
 void	 ip6_checksum(void *buf, size_t len);
 __END_DECLS
-
 #endif /* DNET_IP6_H */
+/* vim:set ts=4 sw=4 noet ai tw=80: */
