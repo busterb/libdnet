@@ -12,9 +12,9 @@
 #define DNET_ADDR_H
 
 #define ADDR_TYPE_NONE  0		/* No address set */
-#define ADDR_TYPE_ETH   1	/* Ethernet */
-#define ADDR_TYPE_IP	2	/* Internet Protocol v4 */
-#define ADDR_TYPE_IP6   3	/* Internet Protocol v6 */
+#define ADDR_TYPE_ETH   1		/* Ethernet */
+#define ADDR_TYPE_IP	2		/* Internet Protocol v4 */
+#define ADDR_TYPE_IP6   3		/* Internet Protocol v6 */
 
 struct addr {
 	uint16_t addr_type;
@@ -44,7 +44,7 @@ struct addr {
 
 __BEGIN_DECLS int addr_cmp(const struct addr *a, const struct addr *b);
 
-int     intf_addr_cmp(const struct addr *a, const struct addr *b);
+int intf_addr_cmp(const struct addr *a, const struct addr *b);
 
 int addr_bcast(const struct addr *a, struct addr *b);
 int addr_net(const struct addr *a, struct addr *b);

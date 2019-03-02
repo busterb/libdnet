@@ -12,14 +12,14 @@
 #define DNET_FW_H
 
 struct fw_rule {
-	char		fw_device[INTF_NAME_LEN]; /* interface name */
-	uint8_t		fw_op;			  /* operation */
-	uint8_t		fw_dir;			  /* direction */
-	uint8_t		fw_proto;		  /* IP protocol */
-	struct addr	fw_src;			  /* src address / net */
-	struct addr	fw_dst;			  /* dst address / net */
-	uint16_t	fw_sport[2];		  /* range / ICMP type */
-	uint16_t	fw_dport[2];		  /* range / ICMP code */
+	char fw_device[INTF_NAME_LEN];	/* interface name */
+	uint8_t fw_op;				/* operation */
+	uint8_t fw_dir;				/* direction */
+	uint8_t fw_proto;			/* IP protocol */
+	struct addr fw_src;			/* src address / net */
+	struct addr fw_dst;			/* dst address / net */
+	uint16_t fw_sport[2];		/* range / ICMP type */
+	uint16_t fw_dport[2];		/* range / ICMP code */
 };
 
 #define FW_OP_ALLOW	1
@@ -41,12 +41,12 @@ do {									\
 
 typedef struct fw_handle fw_t;
 
-typedef int (*fw_handler)(const struct fw_rule *rule, void *arg);
+typedef int (*fw_handler)(const struct fw_rule * rule, void *arg);
 
 __BEGIN_DECLS fw_t * fw_open(void);
-int	 fw_add(fw_t *f, const struct fw_rule *rule);
-int	 fw_delete(fw_t *f, const struct fw_rule *rule);
-int	 fw_loop(fw_t *f, fw_handler callback, void *arg);
-fw_t	*fw_close(fw_t *f);
+int fw_add(fw_t * f, const struct fw_rule *rule);
+int fw_delete(fw_t * f, const struct fw_rule *rule);
+int fw_loop(fw_t * f, fw_handler callback, void *arg);
+fw_t *fw_close(fw_t * f);
 __END_DECLS
 #endif /* DNET_FW_H */

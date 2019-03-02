@@ -12,19 +12,19 @@
 #define DNET_SCTP_H
 
 #ifndef __GNUC__
-# ifndef __attribute__
-#  define __attribute__(x)
-# endif
-# pragma pack(1)
+#ifndef __attribute__
+#define __attribute__(x)
+#endif
+#pragma pack(1)
 #endif
 
 #define SCTP_HDR_LEN	12
 
 struct sctp_hdr {
-	uint16_t	sh_sport;	/* source port */
-	uint16_t	sh_dport;	/* destination port */
-	uint32_t	sh_vtag;	/* sctp verification tag */
-	uint32_t	sh_sum;		/* sctp checksum */
+	uint16_t sh_sport;			/* source port */
+	uint16_t sh_dport;			/* destination port */
+	uint32_t sh_vtag;			/* sctp verification tag */
+	uint32_t sh_sum;			/* sctp checksum */
 } __attribute__((__packed__));
 
 #define SCTP_PORT_MAX	65535
@@ -37,9 +37,9 @@ struct sctp_hdr {
 } while (0)
 
 struct dnet_sctp_chunkhdr {
-	uint8_t		sch_type;	/* chunk type */
-	uint8_t		sch_flags;	/* chunk flags */
-	uint16_t	sch_length;	/* chunk length */
+	uint8_t sch_type;			/* chunk type */
+	uint8_t sch_flags;			/* chunk flags */
+	uint16_t sch_length;		/* chunk length */
 } __attribute__((__packed__));
 
 /* chunk types */
@@ -82,11 +82,11 @@ struct dnet_sctp_chunkhdr {
 struct sctp_chunkhdr_init {
 	struct dnet_sctp_chunkhdr chunkhdr;
 
-	uint32_t	schi_itag;	/* Initiate Tag */
-	uint32_t	schi_arwnd;	/* Advertised Receiver Window Credit */
-	uint16_t	schi_nos;	/* Number of Outbound Streams */
-	uint16_t	schi_nis;	/* Number of Inbound Streams */
-	uint32_t	schi_itsn;	/* Initial TSN */
+	uint32_t schi_itag;			/* Initiate Tag */
+	uint32_t schi_arwnd;		/* Advertised Receiver Window Credit */
+	uint16_t schi_nos;			/* Number of Outbound Streams */
+	uint16_t schi_nis;			/* Number of Inbound Streams */
+	uint32_t schi_itsn;			/* Initial TSN */
 } __attribute__((__packed__));
 
 #define sctp_pack_chunkhdr_init(hdr, type, flags, length, itag,		\
@@ -107,11 +107,11 @@ struct sctp_chunkhdr_init {
 struct sctp_chunkhdr_init_ack {
 	struct dnet_sctp_chunkhdr chunkhdr;
 
-	uint32_t	schia_itag;	/* Initiate Tag */
-	uint32_t	schia_arwnd;	/* Advertised Receiver Window Credit */
-	uint16_t	schia_nos;	/* Number of Outbound Streams */
-	uint16_t	schia_nis;	/* Number of Inbound Streams */
-	uint32_t	schia_itsn;	/* Initial TSN */
+	uint32_t schia_itag;		/* Initiate Tag */
+	uint32_t schia_arwnd;		/* Advertised Receiver Window Credit */
+	uint16_t schia_nos;			/* Number of Outbound Streams */
+	uint16_t schia_nis;			/* Number of Inbound Streams */
+	uint32_t schia_itsn;		/* Initial TSN */
 } __attribute__((__packed__));
 
 #define sctp_pack_chunkhdr_init_ack(hdr, type, flags, length, itag,	\
@@ -178,7 +178,7 @@ struct sctp_chunkhdr_cookie_echo {
 } while (0)
 
 #ifndef __GNUC__
-# pragma pack()
+#pragma pack()
 #endif
 
 #endif /* DNET_SCTP_H */

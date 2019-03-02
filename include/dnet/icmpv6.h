@@ -10,30 +10,30 @@
 #ifndef DNET_ICMPV6_H
 #define DNET_ICMPV6_H
 
-#define ICMPV6_HDR_LEN	4	/* base ICMPv6 header length */
+#define ICMPV6_HDR_LEN	4		/* base ICMPv6 header length */
 
 #ifndef __GNUC__
 #ifndef __attribute__
-# define __attribute__(x)
+#define __attribute__(x)
 #endif
-# pragma pack(1)
+#pragma pack(1)
 #endif
 
 /*
  * ICMPv6 header
  */
 struct icmpv6_hdr {
-	uint8_t		icmpv6_type;	/* type of message, see below */
-	uint8_t		icmpv6_code;	/* type sub code */
-	uint16_t	icmpv6_cksum;	/* ones complement cksum of struct */
+	uint8_t icmpv6_type;		/* type of message, see below */
+	uint8_t icmpv6_code;		/* type sub code */
+	uint16_t icmpv6_cksum;		/* ones complement cksum of struct */
 };
 
 /*
  * Types (icmpv6_type) and codes (icmpv6_code) -
  * http://www.iana.org/assignments/icmpv6-parameters
  */
-#define		ICMPV6_CODE_NONE	0		/* for types without codes */
-#define ICMPV6_UNREACH		1		/* dest unreachable, codes: */
+#define		ICMPV6_CODE_NONE	0	/* for types without codes */
+#define ICMPV6_UNREACH		1	/* dest unreachable, codes: */
 #define		ICMPV6_UNREACH_NOROUTE		0	/* no route to dest */
 #define		ICMPV6_UNREACH_PROHIB		1	/* admin prohibited */
 #define		ICMPV6_UNREACH_SCOPE		2	/* beyond scope of source address */
@@ -41,15 +41,15 @@ struct icmpv6_hdr {
 #define		ICMPV6_UNREACH_PORT		4	/* port unreach */
 #define		ICMPV6_UNREACH_FILTER_PROHIB	5	/* src failed ingress/egress policy */
 #define		ICMPV6_UNREACH_REJECT_ROUTE	6	/* reject route */
-#define ICMPV6_TIMEXCEED	3		/* time exceeded, code: */
+#define ICMPV6_TIMEXCEED	3	/* time exceeded, code: */
 #define		ICMPV6_TIMEXCEED_INTRANS	0	/* hop limit exceeded in transit */
 #define		ICMPV6_TIMEXCEED_REASS		1	/* fragmetn reassembly time exceeded */
-#define ICMPV6_PARAMPROBLEM	4		/* parameter problem, code: */
+#define ICMPV6_PARAMPROBLEM	4	/* parameter problem, code: */
 #define 	ICMPV6_PARAMPROBLEM_FIELD	0	/* erroneous header field encountered */
 #define 	ICMPV6_PARAMPROBLEM_NEXTHEADER	1	/* unrecognized Next Header type encountered */
 #define 	ICMPV6_PARAMPROBLEM_OPTION	2	/* unrecognized IPv6 option encountered */
 #define ICMPV6_ECHO		128		/* echo request */
-#define ICMPV6_ECHOREPLY	129		/* echo reply */
+#define ICMPV6_ECHOREPLY	129	/* echo reply */
 /*
  * Neighbor discovery types (RFC 4861)
  */
@@ -62,31 +62,31 @@ struct icmpv6_hdr {
  * Echo message data
  */
 struct icmpv6_msg_echo {
-	uint16_t	icmpv6_id;
-	uint16_t	icmpv6_seq;
-	uint8_t		icmpv6_data __flexarr;	/* optional data */
+	uint16_t icmpv6_id;
+	uint16_t icmpv6_seq;
+	uint8_t icmpv6_data __flexarr;	/* optional data */
 };
 
 /* Neighbor solicitation or advertisement (single hardcoded option).
    RFC 4861, sections 4.3 and 4.4. */
 struct icmpv6_msg_nd {
-	uint32_t	icmpv6_flags;
-	ip6_addr_t	icmpv6_target;
-	uint8_t		icmpv6_option_type;
-	uint8_t		icmpv6_option_length;
-	eth_addr_t	icmpv6_mac;
+	uint32_t icmpv6_flags;
+	ip6_addr_t icmpv6_target;
+	uint8_t icmpv6_option_type;
+	uint8_t icmpv6_option_length;
+	eth_addr_t icmpv6_mac;
 };
 
 /*
  * ICMPv6 message union
  */
 union icmpv6_msg {
-	struct icmpv6_msg_echo	   echo;	/* ICMPV6_ECHO{REPLY} */
-	struct icmpv6_msg_nd	   nd;		/* ICMPV6_NEIGHBOR_{SOLICITATION,ADVERTISEMENT} */
+	struct icmpv6_msg_echo echo;	/* ICMPV6_ECHO{REPLY} */
+	struct icmpv6_msg_nd nd;	/* ICMPV6_NEIGHBOR_{SOLICITATION,ADVERTISEMENT} */
 };
 
 #ifndef __GNUC__
-# pragma pack()
+#pragma pack()
 #endif
 
 #define icmpv6_pack_hdr(hdr, type, code) do {				\
