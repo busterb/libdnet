@@ -61,8 +61,10 @@ ip_main(int argc, char *argv[])
 		else if (strcmp(name, "id") == 0)
 			ip->ip_id = ntohs(atoi(value));
 		else if (strcmp(name, "off") == 0) {
-			if (off_aton(value, &ip->ip_off) < 0)
+			uint16_t ip_off;
+			if (off_aton(value, &ip_off) < 0)
 				ip_usage();
+			ip->ip_off = ip_off;
 		} else if (strcmp(name, "ttl") == 0)
 			ip->ip_ttl = atoi(value);
 		else if (strcmp(name, "proto") == 0) {
