@@ -74,7 +74,7 @@ struct arp_ethip {
 struct arp_entry {
 	struct addr arp_pa;			/* protocol address */
 	struct addr arp_ha;			/* hardware address */
-} __attribute__((__packed__));
+};
 
 #ifndef __GNUC__
 #pragma pack()
