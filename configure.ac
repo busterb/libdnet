@@ -5,7 +5,7 @@ dnl Copyright (c) 2000 Dug Song <dugsong@monkey.org>
 dnl
 dnl $Id: configure.in 638 2007-01-20 11:39:21Z dugsong $
 
-AC_INIT([libdnet], [1.12])
+AC_INIT([libdnet], [1.13])
 AC_CONFIG_SRCDIR([include/dnet.h])
 AC_CONFIG_AUX_DIR(config)
 AC_SUBST(ac_aux_dir)
